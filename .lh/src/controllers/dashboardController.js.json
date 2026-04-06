@@ -1,0 +1,22 @@
+{
+    "sourceFile": "src/controllers/dashboardController.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1775484994201,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1775485080207,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -37,5 +37,43 @@\n     });\r\n   } catch (error) {\r\n     res.status(500).json({ message: \"Error fetching summary\" });\r\n   }\r\n+};\r\n+\r\n+export const getTrends = async (req, res) => {\r\n+  try {\r\n+    const userId = req.user._id;\r\n+\r\n+    const records = await Record.find({\r\n+      userId,\r\n+      isDeleted: false,\r\n+    });\r\n+\r\n+    let monthlyData = {};\r\n+\r\n+    records.forEach((record) => {\r\n+      const month = new Date(record.date).toLocaleString(\"default\", {\r\n+        month: \"short\",\r\n+      });\r\n+\r\n+      if (!monthlyData[month]) {\r\n+        monthlyData[month] = { income: 0, expense: 0 };\r\n+      }\r\n+\r\n+      if (record.type === \"income\") {\r\n+        monthlyData[month].income += record.amount;\r\n+      } else {\r\n+        monthlyData[month].expense += record.amount;\r\n+      }\r\n+    });\r\n+\r\n+    const result = Object.keys(monthlyData).map((month) => ({\r\n+      month,\r\n+      ...monthlyData[month],\r\n+    }));\r\n+\r\n+    res.json(result);\r\n+  } catch (error) {\r\n+    res.status(500).json({ message: \"Error fetching trends\" });\r\n+  }\r\n };\n\\ No newline at end of file\n"
+                }
+            ],
+            "date": 1775484994201,
+            "name": "Commit-0",
+            "content": "import Record from \"../models/Record.js\";\r\n\r\nexport const getSummary = async (req, res) => {\r\n  try {\r\n    const userId = req.user._id;\r\n\r\n    const records = await Record.find({\r\n      userId,\r\n      isDeleted: false,\r\n    });\r\n\r\n    let totalIncome = 0;\r\n    let totalExpense = 0;\r\n    let categoryWise = {};\r\n\r\n    records.forEach((record) => {\r\n      if (record.type === \"income\") {\r\n        totalIncome += record.amount;\r\n      } else {\r\n        totalExpense += record.amount;\r\n      }\r\n\r\n      // category wise\r\n      if (!categoryWise[record.category]) {\r\n        categoryWise[record.category] = 0;\r\n      }\r\n      categoryWise[record.category] += record.amount;\r\n    });\r\n\r\n    const netBalance = totalIncome - totalExpense;\r\n\r\n    res.json({\r\n      totalIncome,\r\n      totalExpense,\r\n      netBalance,\r\n      categoryWise,\r\n    });\r\n  } catch (error) {\r\n    res.status(500).json({ message: \"Error fetching summary\" });\r\n  }\r\n};"
+        }
+    ]
+}
